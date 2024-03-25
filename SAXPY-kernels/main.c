@@ -1,41 +1,208 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
+#include <time.h>
+#include <math.h> 
 
-//extern void saxpy_run();
-extern void saxpy_run_param(int n, float A, float* X, float* Y, float* Z);
+// SAXPY x86-64 kernel
+extern float* saxpy_asm(int n, float A, float* X, float* Y, float* Z);
 
+// SAXPY C kernel
 void saxpy(int n, float A, float* X, float* Y, float* Z) {
+	printf("Output Z (C) --> ");
+	int max = (n < 10) ? n : 10;
 	for (int i = 0; i < n; i++) {
 		Z[i] = A * X[i] + Y[i];
+		
+	}
+
+	for (int i = 0;i < max; i++) {
+		printf("%.2f", Z[i]);
+		if (i + 1 != max) {
+			printf(", ");
+		}
 	}
 }
 
+/* Function to generate an array with random floats within a specific range*/
+float* generate_array(int size, int seed) {
+	float* arr = malloc(size * sizeof(float));
+	if (arr == NULL) {
+		printf("Memory allocation failed!\n");
+		return NULL;
+	}
+
+	srand(seed); // Seed the random number generator
+
+	for (int i = 0; i < size; i++) {
+		float sign = (rand() % 2 == 0) ? 1.0f : -1.0f;
+		float magnitude = (float)rand() / RAND_MAX; // Value between 0 and 1
+		arr[i] = sign * magnitude * 50;
+	}
+
+	return arr;
+}
+
+// Timing functions
+LARGE_INTEGER get_timestamp() {
+	LARGE_INTEGER time;
+	QueryPerformanceCounter(&time);
+	return time;
+}
+
+double get_elapsed_time(LARGE_INTEGER start, LARGE_INTEGER end) {
+	LARGE_INTEGER frequency;
+	QueryPerformanceFrequency(&frequency);
+	return (double)(end.QuadPart - start.QuadPart) / frequency.QuadPart;
+}
+
 int main() {
+	int sizes[] = { 1048576, 16777216, 268435456}; // 2^20, 2^24, 2^28
 
-	// General code for SAXPY in C
-	int n = 11;
-	float A = 2.0;
-	float X[] = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0 };
-	float Y[] = { 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0 };
-	float* Z = malloc(n * sizeof(float));
+	int n = 1048576;
+	printf("Generating arrays of size %d...\n", n);
+		
+		
+	float A = 3.0;
 
-	saxpy_run_param(n, A, X, Y, Z);
+	// Generate the first array (X)
+	float* X = generate_array(n, 14);
 
-	// Calling the assembly function
-	//saxpy_run();
+	// Generate the second array (Y)
+	float* Y = generate_array(n, 15);
 
-	// Perform the SAXPY operation
-	//saxpy(n, A, X, Y, Z);
 
-	// Display the first 10 elements (or up to n if n is less than 10)
-	//printf("The first 10 elements of Z are:\n");
-	//for (int i = 0; i < n && i < 10; i++) {
-	//	printf("%.1f ", Z[i]);
-	//}
-	//printf("\n");
-	//free(Z);
-	
+		
+	printf("Inputs: \n");
+	printf("n --> %d \n", n);
+	printf("A --> %.2f \n", A);
+
+	int max = (n < 10) ? n : 10;
+
+	printf("X --> ");
+	for (int i = 0; i < max; i++) {
+		printf("%.2f", X[i]);
+		if (i + 1 != max) {
+			printf(", ");
+		}
+		else {
+			printf(" ...");
+		}
+	}
+	printf("\n");
+
+	printf("Y --> ");
+	for (int i = 0; i < max; i++) {
+		printf("%.2f", Y[i]);
+		if (i + 1 != max) {
+			printf(", ");
+		}
+		else {
+			printf(" ...");
+		}
+	}
+	printf("\n");
+	printf("\n");
+
+	double assembly_time;
+	double c_time;
+
+	float* Z_assembly = malloc(n * sizeof(float));
+
+	// SAXPY in Assembly
+	LARGE_INTEGER start_asm = get_timestamp();
+	Z_assembly = saxpy_asm(n, A, X, Y, Z_assembly);
+	LARGE_INTEGER end_asm = get_timestamp();
+	assembly_time = get_elapsed_time(start_asm, end_asm);
+
+	float* Z_c = malloc(n * sizeof(float));
+
+	// SAXPY in C 
+	LARGE_INTEGER start_c = get_timestamp();
+	saxpy(n, A, X, Y, Z_c);
+	LARGE_INTEGER end_c = get_timestamp();
+	c_time = get_elapsed_time(start_c, end_c);
+
+	printf("\n");
+
+	// Comparison check
+	BOOLEAN values_match = TRUE;
+	for (int i = 0; i < 10; i++) {
+		if (Z_assembly[i] != Z_c[i]) {
+			values_match = FALSE;
+			printf("Discrepancy at index %d: Assembly = %.2f, C = %.2f\n", i, Z_assembly[i], Z_c[i]);
+			break;
+		}
+	}
+	if (values_match) {
+		printf("The x86-64 kernel output is correct.\n");
+	}
+
+	free(Z_assembly);
+	free(Z_c);
+
+	printf("Execution time for size %d (C): %lf seconds\n", n, c_time);
+	printf("Execution time for size %d (Assembly): %lf seconds\n", n, assembly_time);
+	printf("\n");
+
+	free(X);
+	free(Y);
 
 	return 0;
+	
 }
+
+//double* assembly_times = malloc(30 * sizeof(double));
+		//double* c_times = malloc(30 * sizeof(double));
+
+
+		//for (int run = 0; run < 30; run++) {
+		//	float* Z_assembly = malloc(n * sizeof(float));
+		//	float* Z_c = malloc(n * sizeof(float));
+
+		//	// SAXPY in Assembly
+		//	LARGE_INTEGER start_asm = get_timestamp();
+		//	saxpy_asm(n, A, X, Y, Z_assembly);
+		//	LARGE_INTEGER end_asm = get_timestamp();
+		//	assembly_times[run] = get_elapsed_time(start_asm, end_asm);
+
+		//	// SAXPY in C 
+		//	LARGE_INTEGER start_c = get_timestamp();
+		//	saxpy(n, A, X, Y, Z_c);
+		//	LARGE_INTEGER end_c = get_timestamp();
+		//	c_times[run] = get_elapsed_time(start_c, end_c);
+
+		//	if (run == 0) {
+		//		printf("Output Z (Assembly) --> ");
+		//		for (int i = 0; i < max; i++) {
+		//			printf("%.2f", Z_assembly[i]);
+		//			if (i + 1 != max) {
+		//				printf(", ");
+		//			}
+		//		}
+		//		printf("\n");
+		//		printf("Output Z (C) --> ");
+		//		for (int i = 0; i < max; i++) {
+		//			printf("%.2f", Z_c[i]);
+		//			if (i + 1 != max) {
+		//				printf(", ");
+		//			}
+		//		}
+		//		printf("\n");
+		//	}
+
+		//	// ... (Freeing Z_assembly and Z_c)
+		//	free(Z_assembly);
+		//	free(Z_c);
+		//}
+
+
+		//// Calculate averages
+		//double avg_assembly_time = 0.0;
+		//double avg_c_time = 0.0;
+		//for (int j = 0; j < 30; j++) {
+		//	avg_assembly_time += assembly_times[j];
+		//	avg_c_time += c_times[j];
+		//}
+		//avg_assembly_time /= 30;
+		//avg_c_time /= 30;

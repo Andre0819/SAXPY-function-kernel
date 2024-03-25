@@ -23,11 +23,5 @@
     <CustomBuild Include="asmfunc.asm">
       <Filter>Source Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="saxpy_func.asm">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="demo.asm">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
   </ItemGroup>
 </Project>
