@@ -1,6 +1,8 @@
 # SAXPY Function in C and x86-64 assembly language
 Kernels written in C and x86-64 assembly language that performs the SAXPY (A*X + Y) function.
 
+```Developed by Andre Aquino & Bien Miranda```
+
 ## Execution Times and Analysis
 The SAXPY function goes by the formula:
 
@@ -54,6 +56,7 @@ the carefully orchestrated efficiency possible with efficient assembly code.
 ![program output 2-28 in debug](outputs/Debug_2-28.png)
 
 ### Release Mode
+#### Vector Size: 2<sup>20</sup> or 1,048,576
 ![program output 2-20 in release](outputs/Release_2-20.png)
 #### Vector Size: 2<sup>24</sup> or 16,777,216
 ![program output 2-24 in release](outputs/Release_2-24.png)
