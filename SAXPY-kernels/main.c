@@ -24,7 +24,7 @@ void saxpy(int n, float A, float* X, float* Y, float* Z) {
 	}
 }
 
-/* Function to generate an array with random floats within a specific range*/
+/* Function to generate an array with random floats within a specific range of -100 to 100*/
 float* generate_array(int size, int seed) {
 	float* arr = malloc(size * sizeof(float));
 	if (arr == NULL) {
@@ -37,7 +37,7 @@ float* generate_array(int size, int seed) {
 	for (int i = 0; i < size; i++) {
 		float sign = (rand() % 2 == 0) ? 1.0f : -1.0f;
 		float magnitude = (float)rand() / RAND_MAX; // Value between 0 and 1
-		arr[i] = sign * magnitude * 50;
+		arr[i] = sign * magnitude * 100;
 	}
 
 	return arr;
@@ -59,7 +59,7 @@ double get_elapsed_time(LARGE_INTEGER start, LARGE_INTEGER end) {
 int main() {
 	int sizes[] = { 1048576, 16777216, 268435456}; // 2^20, 2^24, 2^28
 
-	int n = 1048576;
+	int n = 268435456;
 	printf("Generating arrays of size %d...\n", n);
 		
 		
@@ -67,7 +67,6 @@ int main() {
 
 	// Generate the first array (X)
 	float* X = generate_array(n, 14);
-
 	// Generate the second array (Y)
 	float* Y = generate_array(n, 15);
 
@@ -103,6 +102,7 @@ int main() {
 	}
 	printf("\n");
 	printf("\n");
+
 
 	double assembly_time;
 	double c_time;
@@ -145,64 +145,6 @@ int main() {
 	printf("Execution time for size %d (Assembly): %lf seconds\n", n, assembly_time);
 	printf("\n");
 
-	free(X);
-	free(Y);
-
 	return 0;
 	
 }
-
-//double* assembly_times = malloc(30 * sizeof(double));
-		//double* c_times = malloc(30 * sizeof(double));
-
-
-		//for (int run = 0; run < 30; run++) {
-		//	float* Z_assembly = malloc(n * sizeof(float));
-		//	float* Z_c = malloc(n * sizeof(float));
-
-		//	// SAXPY in Assembly
-		//	LARGE_INTEGER start_asm = get_timestamp();
-		//	saxpy_asm(n, A, X, Y, Z_assembly);
-		//	LARGE_INTEGER end_asm = get_timestamp();
-		//	assembly_times[run] = get_elapsed_time(start_asm, end_asm);
-
-		//	// SAXPY in C 
-		//	LARGE_INTEGER start_c = get_timestamp();
-		//	saxpy(n, A, X, Y, Z_c);
-		//	LARGE_INTEGER end_c = get_timestamp();
-		//	c_times[run] = get_elapsed_time(start_c, end_c);
-
-		//	if (run == 0) {
-		//		printf("Output Z (Assembly) --> ");
-		//		for (int i = 0; i < max; i++) {
-		//			printf("%.2f", Z_assembly[i]);
-		//			if (i + 1 != max) {
-		//				printf(", ");
-		//			}
-		//		}
-		//		printf("\n");
-		//		printf("Output Z (C) --> ");
-		//		for (int i = 0; i < max; i++) {
-		//			printf("%.2f", Z_c[i]);
-		//			if (i + 1 != max) {
-		//				printf(", ");
-		//			}
-		//		}
-		//		printf("\n");
-		//	}
-
-		//	// ... (Freeing Z_assembly and Z_c)
-		//	free(Z_assembly);
-		//	free(Z_c);
-		//}
-
-
-		//// Calculate averages
-		//double avg_assembly_time = 0.0;
-		//double avg_c_time = 0.0;
-		//for (int j = 0; j < 30; j++) {
-		//	avg_assembly_time += assembly_times[j];
-		//	avg_c_time += c_times[j];
-		//}
-		//avg_assembly_time /= 30;
-		//avg_c_time /= 30;

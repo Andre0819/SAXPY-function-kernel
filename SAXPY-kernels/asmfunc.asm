@@ -32,22 +32,6 @@ saxpy_asm:
     mov r14, [rbp+32]       ; Z (from R9 register) 
     
     mov qword [n], rax
-    ;mov qword [hold], rax
-    ;add qword [hold], 1
-    ;mov rax, 8
-    ;imul rax, [hold]
-    ;mov qword [hold], rax
-    
-    ;mov rdx, [n]
-    ;mov rcx, param1
-    ;call printf
-
-    ;cvtss2sd xmm7, xmm7
-    ;movsd qword [results], xmm7
-    ;mov rdx, [results]
-    ;mov rcx, param2
-    ;call printf
-    ;cvtsd2ss xmm7, xmm7
 
     mov rbx, 0
     
@@ -64,13 +48,6 @@ SAXPY:
     addss xmm12, xmm11
     
     movss [r14+4*rbx], xmm12
-
-    ;movss xmm15, [r14+4*rbx]
-    ;cvtss2sd xmm15, xmm15
-    ;movsd qword [results], xmm15
-    ;mov rdx, [results]
-    ;mov rcx, msg3
-    ;call printf
     
     inc rbx
     jmp SAXPY
@@ -95,18 +72,12 @@ display_results:
     je end
 
     reduce_to_10:
-        cmp rbx, 10
-        je display_results
-        dec rbx
-        jmp reduce_to_10
+        mov rbx, 10
+        jmp store_other_vals
     
     store_other_vals:
         cmp rbx, 3
         je display_results
-
-        ;mov rdx, rbx
-        ;mov rcx, msg2
-        ;call printf
 
         mov rsi, rbx
         sub rsi, 1
